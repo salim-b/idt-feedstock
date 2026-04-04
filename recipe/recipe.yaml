@@ -1,5 +1,5 @@
 context:
-  version: "0.1.20"
+  version: "0.1.21"
 
 package:
   name: idt
@@ -7,10 +7,10 @@ package:
 
 source:
   url: https://github.com/sh-cho/idt/archive/refs/tags/${{ version }}.tar.gz
-  sha256: ca7d78731ba466ca34b67e66de2e81e6049d7fbf56b356c16b399c973d72d86c
+  sha256: 0698fb3e8e29a18e66da0718f5fe23270cf69beb3943c02eaa781d9c4d761afd
 
 build:
-  number: 1
+  number: 0
   script:
     env:
       CARGO_PROFILE_RELEASE_STRIP: symbols
