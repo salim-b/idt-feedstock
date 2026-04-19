@@ -1,5 +1,5 @@
 context:
-  version: "0.1.21"
+  version: "0.1.22"
 
 package:
   name: idt
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://github.com/sh-cho/idt/archive/refs/tags/${{ version }}.tar.gz
-  sha256: 0698fb3e8e29a18e66da0718f5fe23270cf69beb3943c02eaa781d9c4d761afd
+  sha256: e4f851b8bdca9f7a662eff973353ed84e553988912a455bc2319293842a9f974
 
 build:
   number: 0
