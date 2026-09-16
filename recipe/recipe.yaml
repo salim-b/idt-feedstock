@@ -15,32 +15,21 @@ build:
     env:
       CARGO_PROFILE_RELEASE_LTO: fat
       CARGO_PROFILE_RELEASE_STRIP: symbols
+    interpreter: nu
     content:
-      - if: unix
+      - let prefix = $env.LIBRARY_PREFIX? | default $env.PREFIX
+      # build main app and generate license data
+      - cargo auditable install --path=. --root=($prefix) --no-track --locked --bins
+      - cargo-bundle-licenses --format=yaml --output=THIRDPARTY.yml
+      # generate shell completions
+      - if: build_platform == host_platform
         then:
-          - cargo auditable install --path=. --root="$PREFIX" --no-track --locked --bins
-          # generate shell completions and manpage
-          - if: build_platform == host_platform
-            then:
-              - mkdir -p "$PREFIX"/share/bash-completion/completions "$PREFIX"/share/fish/vendor_completions.d "$PREFIX"/share/zsh/site-functions "$PREFIX"/share/man/man1
-              - '"$PREFIX"/bin/idt completions bash > "$PREFIX"/share/bash-completion/completions/idt'
-              - '"$PREFIX"/bin/idt completions fish > "$PREFIX"/share/fish/vendor_completions.d/idt.fish'
-              - '"$PREFIX"/bin/idt completions zsh  > "$PREFIX"/share/zsh/site-functions/_idt'
-              - '"$PREFIX"/bin/idt manpage            "$PREFIX"/share/man/man1'
-        else:
-          - cargo auditable install --path=. --root="%LIBRARY_PREFIX%" --no-track --locked --bins
-          # generate shell completions and manpage
-          - if: build_platform == host_platform
-            then:
-              - mkdir "%LIBRARY_PREFIX%"\share\bash-completion\completions
-              - mkdir "%LIBRARY_PREFIX%"\share\fish\vendor_completions.d
-              - mkdir "%LIBRARY_PREFIX%"\share\zsh\site-functions
-              - mkdir "%LIBRARY_PREFIX%"\share\man\man1
-              - '"%LIBRARY_BIN%"\idt.exe completions bash > "%LIBRARY_PREFIX%"\share\bash-completion\completions\idt'
-              - '"%LIBRARY_BIN%"\idt.exe completions fish > "%LIBRARY_PREFIX%"\share\fish\vendor_completions.d\idt.fish'
-              - '"%LIBRARY_BIN%"\idt.exe completions zsh  > "%LIBRARY_PREFIX%"\share\zsh\site-functions\_idt'
-              - '"%LIBRARY_BIN%"\idt.exe manpage            "%LIBRARY_PREFIX%"\share\man\man1'
-      - cargo-bundle-licenses --format=yaml --output=./THIRDPARTY.yml
+          - mkdir ($prefix)/share/man/man1 ($prefix)/share/bash-completion/completions ($prefix)/share/fish/vendor_completions.d ($prefix)/share/zsh/site-functions
+          - let bin = ($prefix)/bin/idt
+          - ^$bin manpage                 ($prefix)/share/man/man1
+          - ^$bin completions bash | save ($prefix)/share/bash-completion/completions/idt
+          - ^$bin completions fish | save ($prefix)/share/fish/vendor_completions.d/idt.fish
+          - ^$bin completions zsh  | save ($prefix)/share/zsh/site-functions/_idt
 
 requirements:
   build:
@@ -49,6 +38,7 @@ requirements:
     - ${{ compiler('rust') }}
     - cargo-auditable
     - cargo-bundle-licenses
+    - nushell
 
 tests:
   - script:
@@ -60,16 +50,16 @@ tests:
       files:
         - if: unix and build_platform == host_platform
           then:
+            - share/man/man1/idt*.1
             - share/bash-completion/completions/idt
             - share/fish/vendor_completions.d/idt.fish
             - share/zsh/site-functions/_idt
-            - share/man/man1/idt*.1
         - if: win and build_platform == host_platform
           then:
+            - Library/share/man/man1/idt*.1
             - Library/share/bash-completion/completions/idt
             - Library/share/fish/vendor_completions.d/idt.fish
             - Library/share/zsh/site-functions/_idt
-            - Library/share/man/man1/idt*.1
       strict: true
 
 about:
